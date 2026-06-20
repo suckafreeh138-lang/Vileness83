@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notes Hub</title>
+
+<style>
+  body {
+    font-family: sans-serif;
+    background: #0f172a;
+    color: #f1f5f9;
+    margin: 0;
+    padding: 12px;
+  }
+
+  h1 {
+    font-size: 1.2rem;
+    color: #38bdf8;
+    margin-bottom: 4px;
+  }
+
+  p {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 0;
+  }
+
+  .box {
+    background: #131c2e;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  label {
+    font-size: 0.7rem;
+    color: #38bdf8;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  input, textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #1e293b;
+    background: #0b1020;
+    color: white;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    background: #22c55e;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    color: #0b1020;
+    cursor: pointer;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  th, td {
+    padding: 8px;
+    border-bottom: 1px solid #1e293b;
+    vertical-align: top;
+  }
+
+  th {
+    text-align: left;
+    color: #64748b;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 5px;
+    font-size: 0.7rem;
+    text-decoration: none;
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>Notes Hub</h1>
+<p>Simple offline Android-friendly notes tool</p>
+
+<form id="form" class="box">
+  <label>Phone</label>
+  <input id="phone" type="tel" inputmode="tel" placeholder="Phone number">
+
+  <label>Name</label>
+  <input id="name" type="text" placeholder="Name or alias">
+
+  <label>Notes</label>
+  <textarea id="notes" rows="3" placeholder="Write notes..."></textarea>
+
+  <button type="submit">Save</button>
+</form>
+
+<div class="box">
+  <table>
+    <thead>
+      <tr>
+        <th>Phone</th>
+        <th>Name</th>
+        <th>Notes</th>
+        <th>Search</th>
+      </tr>
+    </thead>
+    <tbody id="list"></tbody>
+  </table>
+</div>
+
+<script>
+let data = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    data = JSON.parse(localStorage.getItem("notes_app") || "[]");
+  } catch {
+    data = [];
+  }
+  render();
+});
+
+document.getElementById("form").addEventListener("submit", e => {
+  e.preventDefault();
+
+  const item = {
+    phone: document.getElementById("phone").value.trim(),
+    name: document.getElementById("name").value.trim(),
+    notes: document.getElementById("notes").value.trim()
+  };
+
+  data.unshift(item);
+  localStorage.setItem("notes_app", JSON.stringify(data));
+
+  e.target.reset();
+  render();
+});
+
+function render() {
+  const list = document.getElementById("list");
+
+  if (!data.length) {
+    list.innerHTML = `<tr><td colspan="4" style="color:#64748b;text-align:center;">No entries</td></tr>`;
+    return;
+  }
+
+  list.innerHTML = data.map(d => {
+    const q = encodeURIComponent(d.phone || "");
+
+    return `
+      <tr>
+        <td>${escape(d.phone)}</td>
+        <td>${escape(d.name)}</td>
+        <td>${escape(d.notes)}</td>
+        <td>
+          <a class="btn"
+             target="_blank"
+             href="https://www.google.com/search?q=${q}">
+             Search
+          </a>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function escape(str) {
+  return String(str || "").replace(/[&<>"']/g, m => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  }[m]));
+}
+</script>
+
+</body>
+</html>
