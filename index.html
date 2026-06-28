@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reverse Phone Intelligence Console</title>
+  <style>
+    body { font-family: sans-serif; background: #0f172a; color: #f1f5f9; padding: 15px; }
+    h1 { color: #38bdf8; font-size: 1.3rem; margin-bottom: 5px; }
+    p { color: #64748b; font-size: 0.8rem; margin-bottom: 15px; }
+    .box { background: #131c2e; border: 1px solid #1e293b; padding: 15px; border-radius: 6px; margin-bottom: 15px; }
+    label { font-size: 0.75rem; color: #38bdf8; display: block; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
+    input, textarea { width: 100%; padding: 8px; background: #090d16; border: 1px solid #1e293b; color: white; border-radius: 4px; box-sizing: border-box; margin-bottom: 10px; color-scheme: dark; }
+    button { width: 100%; padding: 10px; background: #22c55e; color: #090d16; font-weight: bold; border: none; border-radius: 4px; font-size: 0.85rem; margin-top: 5px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.8rem; }
+    th { text-align: left; color: #64748b; padding: 8px; border-bottom: 2px solid #1e293b; text-transform: uppercase; font-size: 0.7rem; }
+    td { padding: 8px; border-bottom: 1px solid #1e293b; vertical-align: top; }
+    .lnk { display: inline-block; background: #090d16; border: 1px solid #38bdf8; color: #38bdf8; padding: 4px 8px; border-radius: 3px; text-decoration: none; margin: 2px; font-size: 0.75rem; font-weight: bold; }
+    .lnk.google { border-color: #eab308; color: #eab308; }
+  </style>
+</head>
+<body>
+  <h1>Phone Intel & Reverse Lookup Hub</h1>
+  <p>Local Mobile Intelligence Matrix & Social Media Pivot Engine</p>
+  <form id="phone-form" class="box">
+    <label>Suspect Phone Number</label>
+    <input type="tel" id="target-phone" placeholder="Include country code (e.g., +15551234567)" required autocomplete="off">
+    <label>Associated Names / Aliases</label>
+    <input type="text" id="target-name" placeholder="Scammer name, profile handles, or fake business names" autocomplete="off">
+    <label>Investigation Notes & Timeline</label>
+    <textarea id="target-notes" rows="3" placeholder="Log chat app messages, fake location claims, crypto demands, and scam details..."></textarea>
+    <button type="submit">Lock Number Into Case Log</button>
+  </form>
+
+  <div class="box" style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Phone Indicator</th>
+          <th>Names / Aliases</th>
+          <th>Investigation Notes</th>
+          <th>Active Reverse Pivots</th>
+        </tr>
+      </thead>
+      <tbody id="log-body"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let cases = [];
+    document.addEventListener("DOMContentLoaded", () => {
+      const stored = localStorage.getItem("phone_osint_matrix");
+      if(stored) { try{ cases = JSON.parse(stored); }catch(e){ cases = []; } }
+      render();
+    });
+
+    document.getElementById('phone-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rawPhone = document.getElementById('target-phone').value.trim();
+      // Stripping formatting symbols for clean web links
+      const cleanPhone = rawPhone.replace(/[^0-9+]/g, '');
+
+      cases.unshift({
+        phone: cleanPhone,
+        name: document.getElementById('target-name').value.trim(),
+        notes: document.getElementById('target-notes').value.trim()
+      });
+
+      localStorage.setItem("phone_osint_matrix", JSON.stringify(cases));
+      render();
+      document.getElementById('phone-form').reset();
+    });
+
+    function render() {
+      const tbody = document.getElementById('log-body');
+      if(cases.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:#64748b; text-align:center; padding: 20px;">No suspect phone numbers logged yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = cases.map(c => {
+        const encPhone = encodeURIComponent(c.phone);
+        const quotedPhone = encodeURIComponent(`"${c.phone}"`);
+
+        return `<tr>
+          <td style="color:#22c55e; font-family:monospace; font-size:0.9rem;"><b>${escapeHTML(c.phone)}</b></td>
+          <td>${escapeHTML(c.name || '—')}</td>
+          <td style="white-space:pre-wrap; max-width:200px;">${escapeHTML(c.notes || '—')}</td>
+          <td>
+            <a class="lnk" href="https://epieos.com/?q=${encPhone}&t=phone" target="_blank">Epieos Social</a><br>
+            <a class="lnk" href="https://spokeo.com/?phone=${encPhone}" target="_blank">Spokeo Look</a><br>
+            <a class="lnk google" href="https://google.com/search?q=${quotedPhone}" target="_blank">Google Footprint</a>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t));
+    }
+  </script>
+</body>
+</html>
